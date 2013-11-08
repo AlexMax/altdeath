@@ -5,6 +5,18 @@
 #include "SDL.h"
 #include "GL/glew.h"
 
+namespace input {
+	void poll() {
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			if (event.type == SDL_KEYUP || event.type == SDL_QUIT) {
+				// Yes, we're throwing an integer as an exception to quit.
+				throw 0;
+			}
+		}
+	}
+}
+
 namespace renderer {
 
 class Screen {
@@ -54,12 +66,61 @@ void Screen::swap() {
 	SDL_GL_SwapWindow(this->window);
 }
 
+class Shader {
+private:
+	GLuint ref;
+public:
+	Shader(const char* source, GLenum type);
+	~Shader();
+};
+
+Shader::Shader(const char* source, GLenum type) {
+	const GLchar* sourceArray[1] = { source };
+
+	this->ref = glCreateShader(type);
+	glShaderSource(this->ref, 1, sourceArray, NULL);
+	glCompileShader(this->ref);
+
+	GLint success;
+	glGetShaderiv(this->ref, GL_COMPILE_STATUS, &success);
+	if (success == GL_FALSE) {
+		GLsizei infoLogLength;
+		glGetShaderiv(this->ref, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+		GLchar* infoLog = new GLchar[infoLogLength + 1];
+		glGetShaderInfoLog(this->ref, infoLogLength, NULL, infoLog);
+
+		throw std::runtime_error(infoLog);
+	}
+}
+
+Shader::~Shader() {
+	if (glIsShader(this->ref)) {
+		glDeleteShader(this->ref);
+	}
+}
+
 }
 
 int main(int argc, char** argv) {
 	try {
 		// Initialize a screen for us to target.
 		std::unique_ptr<renderer::Screen> screen(new renderer::Screen);
+
+		const char* vertex =
+			"#version 130\n"
+			"in vec4 a_position;"
+			"void main() {"
+			"gl_Position = vec4(a_position);"
+			"}";
+		renderer::Shader vs = renderer::Shader(vertex, GL_VERTEX_SHADER);
+
+		const char* fragment =
+			"#version 130\n"
+			"void main() {"
+			"gl_FragColor = vec4(0, 1, 0, 1);"
+			"}";
+		renderer::Shader fs = renderer::Shader(fragment, GL_FRAGMENT_SHADER);
 
 		// Allocate a Vertex Array (why?)
 		GLuint vertexArrayID;
@@ -80,13 +141,7 @@ int main(int argc, char** argv) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), triangle, GL_STATIC_DRAW);
 
 		for (;;) {
-			SDL_Event event;
-			while (SDL_PollEvent(&event)) {
-				if (event.type == SDL_KEYUP || event.type == SDL_QUIT) {
-					// Yes, we're throwing an integer as an exception to quit.				
-					throw 0;
-				}
-			}
+			input::poll();
 
 			glEnableVertexAttribArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
