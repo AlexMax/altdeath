@@ -72,6 +72,7 @@ private:
 public:
 	Shader(const char* source, GLenum type);
 	~Shader();
+	const GLuint getRef();
 };
 
 Shader::Shader(const char* source, GLenum type) {
@@ -100,6 +101,60 @@ Shader::~Shader() {
 	}
 }
 
+const GLuint Shader::getRef() {
+	return this->ref;
+}
+
+class Program {
+private:
+	GLuint ref;
+public:
+	Program();
+	~Program();
+	void attachShader(Shader &shader);
+	void link();
+	void use();
+	const GLuint getRef();
+};
+
+Program::Program() {
+	this->ref = glCreateProgram();
+}
+
+Program::~Program() {
+	if (glIsProgram(this->ref)) {
+		glDeleteProgram(this->ref);
+	}
+}
+
+void Program::attachShader(Shader &shader) {
+	glAttachShader(this->ref, shader.getRef());
+}
+
+void Program::link() {
+	glLinkProgram(this->ref);
+
+	GLint success;
+	glGetProgramiv(this->ref, GL_LINK_STATUS, &success);
+	if (success == GL_FALSE) {
+		GLsizei infoLogLength;
+		glGetProgramiv(this->ref, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+		GLchar* infoLog = new GLchar[infoLogLength + 1];
+		glGetShaderInfoLog(this->ref, infoLogLength, NULL, infoLog);
+
+		throw std::runtime_error(infoLog);
+	}
+}
+
+void Program::use() {
+	glUseProgram(this->ref);
+}
+
+const GLuint Program::getRef() {
+	return this->ref;
+}
+
 }
 
 int main(int argc, char** argv) {
@@ -122,10 +177,15 @@ int main(int argc, char** argv) {
 			"}";
 		renderer::Shader fs = renderer::Shader(fragment, GL_FRAGMENT_SHADER);
 
-		// Allocate a Vertex Array (why?)
-		GLuint vertexArrayID;
-		glGenVertexArrays(1, &vertexArrayID);
-		glBindVertexArray(vertexArrayID);
+		// Compile and link the Shader Program
+		renderer::Program program;
+		program.attachShader(vs);
+		program.attachShader(fs);
+		program.link();
+		program.use();
+
+		GLint positionLocation = glGetAttribLocation(program.getRef(), "a_position");
+		glEnableVertexAttribArray(positionLocation);
 
 		// Triangle data
 		const GLfloat triangle[9] = {
