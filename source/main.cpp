@@ -2,8 +2,10 @@
 #include <memory>
 #include <stdexcept>
 
-#include "SDL.h"
-#include "GL/glew.h"
+#include <SDL.h>
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace input {
 	void poll() {
@@ -171,8 +173,9 @@ int main(int argc, char** argv) {
 		const char* vertex =
 			"#version 140\n"
 			"in vec4 a_position;"
+			"uniform mat4 u_mvp;"
 			"void main() {"
-			"gl_Position = vec4(a_position);"
+			"gl_Position = u_mvp * a_position;"
 			"}";
 		renderer::Shader vs = renderer::Shader(vertex, GL_VERTEX_SHADER);
 
@@ -191,8 +194,8 @@ int main(int argc, char** argv) {
 		program.link();
 		program.use();
 
-		GLint positionLocation = glGetAttribLocation(program.getRef(), "a_position");
-		glEnableVertexAttribArray(positionLocation);
+		GLint a_position = glGetAttribLocation(program.getRef(), "a_position");
+		glEnableVertexAttribArray(a_position);
 
 		// Create a base Vertex Array Object
 		GLuint vertexArrayID;
@@ -211,6 +214,20 @@ int main(int argc, char** argv) {
 		glGenBuffers(1, &vertexBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), triangle, GL_STATIC_DRAW);
+
+		// Create the Model View Projection matrix
+		glm::mat4 projection = glm::perspective(90.0f, 16.0f / 10.0f, 0.1f, 100.0f);
+		glm::mat4 view = glm::lookAt(
+			glm::vec3(3, 3, 3), // Camera Location
+			glm::vec3(0, 0, 0), // Looking At
+			glm::vec3(0, 1, 0)  // Up-vector
+		);
+		glm::mat4 model = glm::mat4(1.0f); // Identitiy Matrix
+		glm::mat4 MVP = projection * view * model;
+
+		// Send our MVP matrix to the vertex shader in our shader program.
+		GLuint u_mvp = glGetUniformLocation(program.getRef(), "u_mvp");
+		glUniformMatrix4fv(u_mvp, 1, GL_FALSE, &MVP[0][0]);
 
 		for (;;) {
 			input::poll();

@@ -24,3 +24,7 @@ target_link_libraries(altdeath ${OPENGL_gl_LIBRARY})
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIRS})
 target_link_libraries(altdeath ${GLEW_LIBRARIES})
+
+# GLM Library
+find_package(GLM REQUIRED)
+include_directories(${GLM_INCLUDE_DIRS})
