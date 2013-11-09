@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 namespace input {
 	void poll() {
@@ -215,14 +216,19 @@ int main(int argc, char** argv) {
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), triangle, GL_STATIC_DRAW);
 
-		// Create the Model View Projection matrix
+		// Projection
 		glm::mat4 projection = glm::perspective(90.0f, 16.0f / 10.0f, 0.1f, 100.0f);
-		glm::mat4 view = glm::lookAt(
-			glm::vec3(3, 3, 3), // Camera Location
-			glm::vec3(0, 0, 0), // Looking At
-			glm::vec3(0, 1, 0)  // Up-vector
-		);
+
+		// View
+		glm::mat4 rotation = glm::yawPitchRoll(.0f, .0f, .0f);
+		glm::vec3 position = glm::vec3(.0f, .0f, -1.f);
+		glm::mat4 translation = glm::translate(glm::mat4(), position);
+		glm::mat4 view = rotation * translation;
+		
+		// Model
 		glm::mat4 model = glm::mat4(1.0f); // Identitiy Matrix
+		
+		// Combined
 		glm::mat4 MVP = projection * view * model;
 
 		// Send our MVP matrix to the vertex shader in our shader program.
