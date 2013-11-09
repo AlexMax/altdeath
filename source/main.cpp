@@ -34,6 +34,11 @@ Screen::Screen() : window(NULL), glContext(NULL) {
 		throw new std::runtime_error(SDL_GetError());
 	}
 
+	// TODO: My eventual target is an Intel HD Graphics 2000, which supports 3.1.
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
 	this->window = SDL_CreateWindow("Altdeath Engine Demo",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 800,
 		SDL_WINDOW_OPENGL);
@@ -46,6 +51,7 @@ Screen::Screen() : window(NULL), glContext(NULL) {
 		throw new std::runtime_error(SDL_GetError());
 	}
 
+	glewExperimental = GL_TRUE; // [AM] Fixes a glGenVertexArrays crash on OSX.
 	GLenum glewError = glewInit();
 	if (glewError != GLEW_OK) {
 		throw new std::runtime_error(reinterpret_cast<const char*>(glewGetErrorString(glewError)));
@@ -163,7 +169,7 @@ int main(int argc, char** argv) {
 		std::unique_ptr<renderer::Screen> screen(new renderer::Screen);
 
 		const char* vertex =
-			"#version 130\n"
+			"#version 140\n"
 			"in vec4 a_position;"
 			"void main() {"
 			"gl_Position = vec4(a_position);"
@@ -171,9 +177,10 @@ int main(int argc, char** argv) {
 		renderer::Shader vs = renderer::Shader(vertex, GL_VERTEX_SHADER);
 
 		const char* fragment =
-			"#version 130\n"
+			"#version 140\n"
+			"out vec4 fragcolor;"
 			"void main() {"
-			"gl_FragColor = vec4(0, 1, 0, 1);"
+			"fragcolor = vec4(0, 1, 0, 1);"
 			"}";
 		renderer::Shader fs = renderer::Shader(fragment, GL_FRAGMENT_SHADER);
 
@@ -186,6 +193,11 @@ int main(int argc, char** argv) {
 
 		GLint positionLocation = glGetAttribLocation(program.getRef(), "a_position");
 		glEnableVertexAttribArray(positionLocation);
+
+		// Create a base Vertex Array Object
+		GLuint vertexArrayID;
+		glGenVertexArrays(1, &vertexArrayID);
+		glBindVertexArray(vertexArrayID);
 
 		// Triangle data
 		const GLfloat triangle[9] = {
@@ -202,6 +214,10 @@ int main(int argc, char** argv) {
 
 		for (;;) {
 			input::poll();
+
+			// Clear the screen.
+			glClearColor(0.0, 0.0, 0.0, 1.0);
+			glClear(GL_COLOR_BUFFER_BIT);
 
 			glEnableVertexAttribArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
