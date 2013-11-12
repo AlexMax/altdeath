@@ -173,18 +173,22 @@ int main(int argc, char** argv) {
 
 		const char* vertex =
 			"#version 140\n"
-			"in vec4 a_position;"
+			"in vec3 a_position;"
+			"in vec3 a_color;"
+			"out vec3 v_color;"
 			"uniform mat4 u_mvp;"
 			"void main() {"
-			"gl_Position = u_mvp * a_position;"
+			"v_color = a_color;"
+			"gl_Position = u_mvp * vec4(a_position, 1.f);"
 			"}";
 		renderer::Shader vs = renderer::Shader(vertex, GL_VERTEX_SHADER);
 
 		const char* fragment =
 			"#version 140\n"
+			"in vec3 v_color;"
 			"out vec4 fragcolor;"
 			"void main() {"
-			"fragcolor = vec4(0, 1, 0, 1);"
+			"fragcolor = vec4(v_color, 1);"
 			"}";
 		renderer::Shader fs = renderer::Shader(fragment, GL_FRAGMENT_SHADER);
 
@@ -197,6 +201,8 @@ int main(int argc, char** argv) {
 
 		GLint a_position = glGetAttribLocation(program.getRef(), "a_position");
 		glEnableVertexAttribArray(a_position);
+		GLint a_color = glGetAttribLocation(program.getRef(), "a_color");
+		glEnableVertexAttribArray(a_color);
 
 		// Create a base Vertex Array Object
 		GLuint vertexArrayID;
@@ -204,11 +210,28 @@ int main(int argc, char** argv) {
 		glBindVertexArray(vertexArrayID);
 
 		// Triangle data
-		const GLfloat triangle[9] = {
-			.0f, .75f, .0f,
-			.75f, -.75f, .0f,
-			-.75f, -.75f, .0f
+		const GLfloat triangle[] = {
+			0.f, .1f, 0.f,
+			1.f, 0.f, 0.f,
+			0.f, -.1f, 0.f,
+			-.1f, 0.f, 0.f,
+			0.f, 1.f, 0.f,
+			.1f, 0.f, 0.f,
+			-.1f, .1f, 0.f,
+			0.f, 0.f, 1.f,
+			.1f, -.1f, 0.f,
+
+			1.f, 0.f, 0.f,
+			1.f, 0.f, 0.f,
+			1.f, 0.f, 0.f,
+			0.f, 0.f, 1.f,
+			0.f, 0.f, 1.f,
+			0.f, 0.f, 1.f,
+			0.f, 1.f, 0.f,
+			0.f, 1.f, 0.f,
+			0.f, 1.f, 0.f
 		};
+		size_t colors = sizeof(triangle) / 2;
 
 		// Pipe our vertex data into a VBO and hand it off to the video card
 		GLuint vertexBufferID;
@@ -220,10 +243,11 @@ int main(int argc, char** argv) {
 		glm::mat4 projection = glm::perspective(90.0f, 16.0f / 10.0f, 0.1f, 100.0f);
 
 		// View
-		glm::mat4 rotation = glm::yawPitchRoll(.0f, .0f, .0f);
-		glm::vec3 position = glm::vec3(.0f, .0f, -1.f);
-		glm::mat4 translation = glm::translate(glm::mat4(), position);
-		glm::mat4 view = rotation * translation;
+		glm::mat4 view = glm::lookAt(
+			glm::vec3(3.f, 3.f, 3.f),
+			glm::vec3(0.f, 0.f, 0.f),
+			glm::vec3(0.f, 0.f, 1.f)
+		);
 		
 		// Model
 		glm::mat4 model = glm::mat4(1.0f); // Identitiy Matrix
@@ -243,14 +267,19 @@ int main(int argc, char** argv) {
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			glEnableVertexAttribArray(0);
+			glEnableVertexAttribArray(1);
+
 			glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)colors);
 
 			// The actual draw call!
-			// It's a triangle, start at vertex 0 and draw all three vertexes.
-			glDrawArrays(GL_TRIANGLES, 0, 3);
+			// It's a triangle, start at vertex 0 and draw all three
+			// vertexes for all three triangles.
+			glDrawArrays(GL_TRIANGLES, 0, 9);
 
 			glDisableVertexAttribArray(0);
+			glDisableVertexAttribArray(1);
 
 			screen->swap();
 		}
