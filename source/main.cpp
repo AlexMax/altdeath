@@ -209,27 +209,75 @@ int main(int argc, char** argv) {
 		glGenVertexArrays(1, &vertexArrayID);
 		glBindVertexArray(vertexArrayID);
 
-		// Triangle data
-		const GLfloat triangle[] = {
-			0.f, .1f, 0.f,
-			1.f, 0.f, 0.f,
-			0.f, -.1f, 0.f,
-			-.1f, 0.f, 0.f,
-			0.f, 1.f, 0.f,
-			.1f, 0.f, 0.f,
-			-.1f, .1f, 0.f,
-			0.f, 0.f, 1.f,
-			.1f, -.1f, 0.f,
+#define DELIM ,
+#define LINE(x1,y1,x2,y2) \
+	x1.0f DELIM y1.0f DELIM 128.0f DELIM \
+	x2.0f DELIM y2.0f DELIM 128.0f DELIM \
+	x1.0f DELIM y1.0f DELIM 0.0f DELIM \
+	x1.0f DELIM y1.0f DELIM 0.0f DELIM \
+	x2.0f DELIM y2.0f DELIM 128.0f DELIM \
+	x2.0f DELIM y2.0f DELIM 0.0f
+#define COLOR(r,g,b) \
+	r.0f DELIM g.0f DELIM b.0f DELIM \
+	r.0f DELIM g.0f DELIM b.0f DELIM \
+	r.0f DELIM g.0f DELIM b.0f DELIM \
+	r.0f DELIM g.0f DELIM b.0f DELIM \
+	r.0f DELIM g.0f DELIM b.0f DELIM \
+	r.0f DELIM g.0f DELIM b.0f
 
-			1.f, 0.f, 0.f,
-			1.f, 0.f, 0.f,
-			1.f, 0.f, 0.f,
-			0.f, 0.f, 1.f,
-			0.f, 0.f, 1.f,
-			0.f, 0.f, 1.f,
-			0.f, 1.f, 0.f,
-			0.f, 1.f, 0.f,
-			0.f, 1.f, 0.f
+		// Triangle data: D_RUNNIN
+		const GLfloat triangle[] = {
+			// Main Room
+			LINE(-224, 512, 228, 512),
+			LINE(228, 512, 352, 192),
+			LINE(352, 192, 224, 64),
+			LINE(224, 64, 160, 64),
+			LINE(160, 64, 160, 0),
+			LINE(160, 0, 32, -64),
+			LINE(32, -64, -32, -64),
+			LINE(-32, -64, -96, 0),
+			LINE(-96, 0, -96, 64),
+			LINE(-96, 64, -160, 64),
+			LINE(-160, 64, -288, 192),
+			LINE(-288, 192, -224, 512),
+
+			// Left Pillar
+			LINE(-160, 256, -96, 256),
+			LINE(-96, 256, -96, 192),
+			LINE(-96, 192, -160, 192),
+			LINE(-160, 192, -160, 256),
+
+			// Right Pillar
+			LINE(160, 256, 224, 256),
+			LINE(224, 256, 224, 192),
+			LINE(224, 192, 160, 192),
+			LINE(160, 192, 160, 256),
+
+			// Main Room Color
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+
+			// Left Pillar Color
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+
+			// Right Pillar Color
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0),
+			COLOR(0, 1, 0)
 		};
 		size_t colors = sizeof(triangle) / 2;
 
@@ -240,17 +288,15 @@ int main(int argc, char** argv) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), triangle, GL_STATIC_DRAW);
 
 		// Projection
-		glm::mat4 projection = glm::perspective(90.0f, 16.0f / 10.0f, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(90.0f, 16.0f / 10.0f, 0.1f, 1000.0f);
 
 		// View
-		glm::mat4 view = glm::lookAt(
-			glm::vec3(3.f, 3.f, 3.f),
-			glm::vec3(0.f, 0.f, 0.f),
-			glm::vec3(0.f, 0.f, 1.f)
-		);
-		
+		glm::mat4 viewRotate = glm::rotate(glm::mat4(1.0f), -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 viewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -56.0f));
+		glm::mat4 view = viewRotate * viewTranslate;
+
 		// Model
-		glm::mat4 model = glm::mat4(1.0f); // Identitiy Matrix
+		glm::mat4 model = glm::mat4(1.0f);
 		
 		// Combined
 		glm::mat4 MVP = projection * view * model;
@@ -276,7 +322,7 @@ int main(int argc, char** argv) {
 			// The actual draw call!
 			// It's a triangle, start at vertex 0 and draw all three
 			// vertexes for all three triangles.
-			glDrawArrays(GL_TRIANGLES, 0, 9);
+			glDrawArrays(GL_TRIANGLES, 0, 6 * 20);
 
 			glDisableVertexAttribArray(0);
 			glDisableVertexAttribArray(1);
