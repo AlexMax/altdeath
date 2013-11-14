@@ -26,6 +26,9 @@ namespace renderer {
 
 class Screen {
 private:
+	Screen(const Screen&);
+	Screen& operator=(const Screen&);
+
 	SDL_Window* window;
 	SDL_GLContext glContext;
 public:
@@ -81,7 +84,7 @@ private:
 public:
 	Shader(const char* source, GLenum type);
 	~Shader();
-	const GLuint getRef();
+	GLuint getRef();
 };
 
 Shader::Shader(const char* source, GLenum type) {
@@ -110,7 +113,7 @@ Shader::~Shader() {
 	}
 }
 
-const GLuint Shader::getRef() {
+GLuint Shader::getRef() {
 	return this->ref;
 }
 
@@ -123,7 +126,7 @@ public:
 	void attachShader(Shader &shader);
 	void link();
 	void use();
-	const GLuint getRef();
+	GLuint getRef();
 };
 
 Program::Program() {
@@ -160,7 +163,7 @@ void Program::use() {
 	gl::UseProgram(this->ref);
 }
 
-const GLuint Program::getRef() {
+GLuint Program::getRef() {
 	return this->ref;
 }
 
