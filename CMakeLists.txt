@@ -8,8 +8,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 # Source Files
 file(GLOB ALTDEATH_SOURCES source/*.cpp)
 
+# OpenGL 3.1 Functions
+set(GLCORE source/opengl/gl_core_3_1.cpp)
+
 # Executable Target
-add_executable(altdeath ${ALTDEATH_SOURCES})
+add_executable(altdeath ${ALTDEATH_SOURCES} ${GLCORE})
 
 # SDL2 Library
 find_package(SDL2 REQUIRED)
@@ -19,11 +22,6 @@ target_link_libraries(altdeath ${SDL2_LIBRARY})
 # System OpenGL Library
 find_package(OpenGL REQUIRED)
 target_link_libraries(altdeath ${OPENGL_gl_LIBRARY})
-
-# GLEW Library
-find_package(GLEW REQUIRED)
-include_directories(${GLEW_INCLUDE_DIRS})
-target_link_libraries(altdeath ${GLEW_LIBRARIES})
 
 # GLM Library
 find_package(GLM REQUIRED)

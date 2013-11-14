@@ -2,11 +2,13 @@
 #include <memory>
 #include <stdexcept>
 
-#include <SDL.h>
-#include <GL/glew.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/euler_angles.hpp>
+#include "SDL.h"
+
+#include "opengl/gl_core_3_1.hpp"
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/euler_angles.hpp"
 
 namespace input {
 	void poll() {
@@ -54,10 +56,8 @@ Screen::Screen() : window(NULL), glContext(NULL) {
 		throw new std::runtime_error(SDL_GetError());
 	}
 
-	glewExperimental = GL_TRUE; // [AM] Fixes a glGenVertexArrays crash on OSX.
-	GLenum glewError = glewInit();
-	if (glewError != GLEW_OK) {
-		throw new std::runtime_error(reinterpret_cast<const char*>(glewGetErrorString(glewError)));
+	if (gl::sys::LoadFunctions() == false) {
+		throw new std::runtime_error("OpenGL function loading failed.");
 	}
 }
 
@@ -87,26 +87,26 @@ public:
 Shader::Shader(const char* source, GLenum type) {
 	const GLchar* sourceArray[1] = { source };
 
-	this->ref = glCreateShader(type);
-	glShaderSource(this->ref, 1, sourceArray, NULL);
-	glCompileShader(this->ref);
+	this->ref = gl::CreateShader(type);
+	gl::ShaderSource(this->ref, 1, sourceArray, NULL);
+	gl::CompileShader(this->ref);
 
 	GLint success;
-	glGetShaderiv(this->ref, GL_COMPILE_STATUS, &success);
-	if (success == GL_FALSE) {
+	gl::GetShaderiv(this->ref, gl::COMPILE_STATUS, &success);
+	if (success == gl::FALSE_) {
 		GLsizei infoLogLength;
-		glGetShaderiv(this->ref, GL_INFO_LOG_LENGTH, &infoLogLength);
+		gl::GetShaderiv(this->ref, gl::INFO_LOG_LENGTH, &infoLogLength);
 
 		GLchar* infoLog = new GLchar[infoLogLength + 1];
-		glGetShaderInfoLog(this->ref, infoLogLength, NULL, infoLog);
+		gl::GetShaderInfoLog(this->ref, infoLogLength, NULL, infoLog);
 
 		throw std::runtime_error(infoLog);
 	}
 }
 
 Shader::~Shader() {
-	if (glIsShader(this->ref)) {
-		glDeleteShader(this->ref);
+	if (gl::IsShader(this->ref)) {
+		gl::DeleteShader(this->ref);
 	}
 }
 
@@ -127,37 +127,37 @@ public:
 };
 
 Program::Program() {
-	this->ref = glCreateProgram();
+	this->ref = gl::CreateProgram();
 }
 
 Program::~Program() {
-	if (glIsProgram(this->ref)) {
-		glDeleteProgram(this->ref);
+	if (gl::IsProgram(this->ref)) {
+		gl::DeleteProgram(this->ref);
 	}
 }
 
 void Program::attachShader(Shader &shader) {
-	glAttachShader(this->ref, shader.getRef());
+	gl::AttachShader(this->ref, shader.getRef());
 }
 
 void Program::link() {
-	glLinkProgram(this->ref);
+	gl::LinkProgram(this->ref);
 
 	GLint success;
-	glGetProgramiv(this->ref, GL_LINK_STATUS, &success);
-	if (success == GL_FALSE) {
+	gl::GetProgramiv(this->ref, gl::LINK_STATUS, &success);
+	if (success == gl::FALSE_) {
 		GLsizei infoLogLength;
-		glGetProgramiv(this->ref, GL_INFO_LOG_LENGTH, &infoLogLength);
+		gl::GetProgramiv(this->ref, gl::INFO_LOG_LENGTH, &infoLogLength);
 
 		GLchar* infoLog = new GLchar[infoLogLength + 1];
-		glGetShaderInfoLog(this->ref, infoLogLength, NULL, infoLog);
+		gl::GetShaderInfoLog(this->ref, infoLogLength, NULL, infoLog);
 
 		throw std::runtime_error(infoLog);
 	}
 }
 
 void Program::use() {
-	glUseProgram(this->ref);
+	gl::UseProgram(this->ref);
 }
 
 const GLuint Program::getRef() {
@@ -181,7 +181,7 @@ int main(int argc, char** argv) {
 			"v_color = a_color;"
 			"gl_Position = u_mvp * vec4(a_position, 1.f);"
 			"}";
-		renderer::Shader vs = renderer::Shader(vertex, GL_VERTEX_SHADER);
+		renderer::Shader vs = renderer::Shader(vertex, gl::VERTEX_SHADER);
 
 		const char* fragment =
 			"#version 140\n"
@@ -190,7 +190,7 @@ int main(int argc, char** argv) {
 			"void main() {"
 			"fragcolor = vec4(v_color, 1);"
 			"}";
-		renderer::Shader fs = renderer::Shader(fragment, GL_FRAGMENT_SHADER);
+		renderer::Shader fs = renderer::Shader(fragment, gl::FRAGMENT_SHADER);
 
 		// Compile and link the Shader Program
 		renderer::Program program;
@@ -199,15 +199,15 @@ int main(int argc, char** argv) {
 		program.link();
 		program.use();
 
-		GLint a_position = glGetAttribLocation(program.getRef(), "a_position");
-		glEnableVertexAttribArray(a_position);
-		GLint a_color = glGetAttribLocation(program.getRef(), "a_color");
-		glEnableVertexAttribArray(a_color);
+		GLint a_position = gl::GetAttribLocation(program.getRef(), "a_position");
+		gl::EnableVertexAttribArray(a_position);
+		GLint a_color = gl::GetAttribLocation(program.getRef(), "a_color");
+		gl::EnableVertexAttribArray(a_color);
 
 		// Create a base Vertex Array Object
 		GLuint vertexArrayID;
-		glGenVertexArrays(1, &vertexArrayID);
-		glBindVertexArray(vertexArrayID);
+		gl::GenVertexArrays(1, &vertexArrayID);
+		gl::BindVertexArray(vertexArrayID);
 
 #define DELIM ,
 #define LINE(x1,y1,x2,y2) \
@@ -283,9 +283,9 @@ int main(int argc, char** argv) {
 
 		// Pipe our vertex data into a VBO and hand it off to the video card
 		GLuint vertexBufferID;
-		glGenBuffers(1, &vertexBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), triangle, GL_STATIC_DRAW);
+		gl::GenBuffers(1, &vertexBufferID);
+		gl::BindBuffer(gl::ARRAY_BUFFER, vertexBufferID);
+		gl::BufferData(gl::ARRAY_BUFFER, sizeof(triangle), triangle, gl::STATIC_DRAW);
 
 		// Projection
 		glm::mat4 projection = glm::perspective(90.0f, 16.0f / 10.0f, 0.1f, 1000.0f);
@@ -297,35 +297,35 @@ int main(int argc, char** argv) {
 
 		// Model
 		glm::mat4 model = glm::mat4(1.0f);
-		
+
 		// Combined
 		glm::mat4 MVP = projection * view * model;
 
 		// Send our MVP matrix to the vertex shader in our shader program.
-		GLuint u_mvp = glGetUniformLocation(program.getRef(), "u_mvp");
-		glUniformMatrix4fv(u_mvp, 1, GL_FALSE, &MVP[0][0]);
+		GLuint u_mvp = gl::GetUniformLocation(program.getRef(), "u_mvp");
+		gl::UniformMatrix4fv(u_mvp, 1, gl::FALSE_, &MVP[0][0]);
 
 		for (;;) {
 			input::poll();
 
 			// Clear the screen.
-			glClearColor(0.0, 0.0, 0.0, 1.0);
-			glClear(GL_COLOR_BUFFER_BIT);
+			gl::ClearColor(0.0, 0.0, 0.0, 1.0);
+			gl::Clear(gl::COLOR_BUFFER_BIT);
 
-			glEnableVertexAttribArray(0);
-			glEnableVertexAttribArray(1);
+			gl::EnableVertexAttribArray(0);
+			gl::EnableVertexAttribArray(1);
 
-			glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)colors);
+			gl::BindBuffer(gl::ARRAY_BUFFER, vertexBufferID);
+			gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE_, 0, 0);
+			gl::VertexAttribPointer(1, 3, gl::FLOAT, gl::FALSE_, 0, (GLvoid*)colors);
 
 			// The actual draw call!
 			// It's a triangle, start at vertex 0 and draw all three
 			// vertexes for all three triangles.
-			glDrawArrays(GL_TRIANGLES, 0, 6 * 20);
+			gl::DrawArrays(gl::TRIANGLES, 0, 6 * 20);
 
-			glDisableVertexAttribArray(0);
-			glDisableVertexAttribArray(1);
+			gl::DisableVertexAttribArray(0);
+			gl::DisableVertexAttribArray(1);
 
 			screen->swap();
 		}
