@@ -167,6 +167,9 @@ const GLuint Program::getRef() {
 }
 
 int main(int argc, char** argv) {
+	// We can't simply omit argc and argv, otherwise SDL_main gets confused.
+	(void)argc; (void)argv;
+
 	try {
 		// Initialize a screen for us to target.
 		std::unique_ptr<renderer::Screen> screen(new renderer::Screen);
@@ -211,19 +214,19 @@ int main(int argc, char** argv) {
 
 #define DELIM ,
 #define LINE(x1,y1,x2,y2) \
-	x1.0f DELIM y1.0f DELIM 128.0f DELIM \
-	x2.0f DELIM y2.0f DELIM 128.0f DELIM \
-	x1.0f DELIM y1.0f DELIM 0.0f DELIM \
-	x1.0f DELIM y1.0f DELIM 0.0f DELIM \
-	x2.0f DELIM y2.0f DELIM 128.0f DELIM \
-	x2.0f DELIM y2.0f DELIM 0.0f
+	(GLfloat)x1 DELIM (GLfloat)y1 DELIM 128.0f DELIM \
+	(GLfloat)x2 DELIM (GLfloat)y2 DELIM 128.0f DELIM \
+	(GLfloat)x1 DELIM (GLfloat)y1 DELIM 0.0f DELIM \
+	(GLfloat)x1 DELIM (GLfloat)y1 DELIM 0.0f DELIM \
+	(GLfloat)x2 DELIM (GLfloat)y2 DELIM 128.0f DELIM \
+	(GLfloat)x2 DELIM (GLfloat)y2 DELIM 0.0f
 #define COLOR(r,g,b) \
-	r.0f DELIM g.0f DELIM b.0f DELIM \
-	r.0f DELIM g.0f DELIM b.0f DELIM \
-	r.0f DELIM g.0f DELIM b.0f DELIM \
-	r.0f DELIM g.0f DELIM b.0f DELIM \
-	r.0f DELIM g.0f DELIM b.0f DELIM \
-	r.0f DELIM g.0f DELIM b.0f
+	(GLfloat)r DELIM (GLfloat)g DELIM (GLfloat)b DELIM \
+	(GLfloat)r DELIM (GLfloat)g DELIM (GLfloat)b DELIM \
+	(GLfloat)r DELIM (GLfloat)g DELIM (GLfloat)b DELIM \
+	(GLfloat)r DELIM (GLfloat)g DELIM (GLfloat)b DELIM \
+	(GLfloat)r DELIM (GLfloat)g DELIM (GLfloat)b DELIM \
+	(GLfloat)r DELIM (GLfloat)g DELIM (GLfloat)b
 
 		// Triangle data: D_RUNNIN
 		const GLfloat triangle[] = {

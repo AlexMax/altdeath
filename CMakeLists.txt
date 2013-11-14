@@ -5,14 +5,19 @@ project(altdeath)
 # Initial CMake Setup
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
+# Compiler Flags
+if(CMAKE_COMPILER_IS_GNUCXX)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Weffc++ -std=c++11")
+elseif(NOT MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++11")
+endif()
+
 # Source Files
 file(GLOB ALTDEATH_SOURCES source/*.cpp)
-
-# OpenGL 3.1 Functions
-set(GLCORE source/opengl/gl_core_3_1.cpp)
+set(GL_SOURCES source/opengl/gl_core_3_1.cpp)
 
 # Executable Target
-add_executable(altdeath ${ALTDEATH_SOURCES} ${GLCORE})
+add_executable(altdeath ${ALTDEATH_SOURCES} ${GL_SOURCES})
 
 # SDL2 Library
 find_package(SDL2 REQUIRED)
