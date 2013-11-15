@@ -34,6 +34,7 @@ private:
 public:
 	Screen();
 	~Screen();
+
 	void swap();
 };
 
@@ -215,6 +216,11 @@ int main(int argc, char** argv) {
 		gl::GenVertexArrays(1, &vertexArrayID);
 		gl::BindVertexArray(vertexArrayID);
 
+		// Enable backface culling
+		gl::Enable(gl::CULL_FACE);
+		gl::CullFace(gl::BACK);
+		gl::FrontFace(gl::CW);
+
 #define DELIM ,
 #define LINE(x1,y1,x2,y2) \
 	(GLfloat)x1 DELIM (GLfloat)y1 DELIM 128.0f DELIM \
@@ -248,16 +254,16 @@ int main(int argc, char** argv) {
 			LINE(-288, 192, -224, 512),
 
 			// Left Pillar
-			LINE(-160, 256, -96, 256),
-			LINE(-96, 256, -96, 192),
-			LINE(-96, 192, -160, 192),
-			LINE(-160, 192, -160, 256),
+			LINE(-96, 256, -160, 256),
+			LINE(-96, 192, -96, 256),
+			LINE(-160, 192, -96, 192),
+			LINE(-160, 256, -160, 192),
 
 			// Right Pillar
-			LINE(160, 256, 224, 256),
-			LINE(224, 256, 224, 192),
-			LINE(224, 192, 160, 192),
-			LINE(160, 192, 160, 256),
+			LINE(224, 256, 160, 256),
+			LINE(224, 192, 224, 256),
+			LINE(160, 192, 224, 192),
+			LINE(160, 256, 160, 192),
 
 			// Main Room Color
 			COLOR(0, 1, 0),
