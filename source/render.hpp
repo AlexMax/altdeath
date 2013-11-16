@@ -1,3 +1,6 @@
+#ifndef RENDER_HPP
+#define RENDER_HPP
+
 #include "SDL.h"
 #include "opengl/gl_core_3_1.hpp"
 
@@ -39,3 +42,5 @@ public:
 };
 
 }
+
+#endif

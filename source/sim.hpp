@@ -1,3 +1,6 @@
+#ifndef SIM_HPP
+#define SIM_HPP
+
 #include <memory>
 #include <vector>
 
@@ -33,3 +36,5 @@ struct Map {
 };
 
 }
+
+#endif
