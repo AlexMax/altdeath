@@ -11,11 +11,13 @@ if(NOT MSVC)
 endif()
 
 # Source Files
+file(GLOB ALTDEATH_HEADERS source/*.hpp)
 file(GLOB ALTDEATH_SOURCES source/*.cpp)
+set(GL_HEADERS source/opengl/gl_core_3_1.hpp)
 set(GL_SOURCES source/opengl/gl_core_3_1.cpp)
 
 # Executable Target
-add_executable(altdeath ${ALTDEATH_SOURCES} ${GL_SOURCES})
+add_executable(altdeath ${ALTDEATH_SOURCES} ${ALTDEATH_HEADERS} ${GL_SOURCES} ${GL_HEADERS})
 
 # SDL2 Library
 find_package(SDL2 REQUIRED)
