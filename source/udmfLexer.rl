@@ -1,3 +1,28 @@
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+
+#include "udmfParser.h"
+
+extern "C" {
+
+extern void UDMF_ParseTrace(FILE *TraceFILE, char *zTracePrompt);
+extern void *UDMF_ParseAlloc(void *(*mallocProc)(size_t));
+extern void UDMF_Parse(void *yyp, int yymajor, void* yyminor);
+extern void UDMF_ParseFree(void *p, void (*freeProc)(void*));
+
+}
+
+static void parseString(void* parser, int type, const char* ts, const char* te) {
+	size_t length = te - ts;
+	char* token = static_cast<char*>(malloc(length + 1));
+	memcpy(token, ts, length);
+	token[length] = 0;
+	printf("%s\n", token);
+	UDMF_Parse(parser, type, token);
+	free(token);
+}
+
 %%{
 	machine UDMF;
 
@@ -8,11 +33,15 @@
 	SEMICOLON = ';';
 	INTEGER = [+\-]?[1-9]+[0-9]* | 0[0-9]+ | '0x'.[0-9A-Fa-f]+;
 	FLOAT = [+\-]?[0-9]+'.'[0-9]*([eE][+\-]?[0-9]+)?;
-	QUOTED_STRING = "(.*)";
-	KEYWORD = [^{}();"'\n\t ]+;
+
+	QS_quote = '"';
+	QS_escape =  /\\./;
+	QS_else = [^"\\];
+
+	KEYWORD = 'true' | 'false';
 
 	action identifierToken {
-		UDMF_Parse(parser, UDMF_IDENTIFIER, 0);
+		parseString(parser, UDMF_IDENTIFIER, ts, te);
 	}
 
 	action leftParenToken {
@@ -32,19 +61,19 @@
 	}
 
 	action integerToken {
-		UDMF_Parse(parser, UDMF_INTEGER, 0);
+		parseString(parser, UDMF_INTEGER, ts, te);
 	}
 
 	action floatToken {
-		UDMF_Parse(parser, UDMF_FLOAT, 0);
+		parseString(parser, UDMF_FLOAT, ts, te);
 	}
 
 	action quotedStringToken {
-		UDMF_Parse(parser, UDMF_QUOTED_STRING, 0);
+		parseString(parser, UDMF_QUOTED_STRING, ts, te);
 	}
 
 	action keywordToken {
-		UDMF_Parse(parser, UDMF_KEYWORD, 0);
+		parseString(parser, UDMF_KEYWORD, ts, te);
 	}
 
 	main := |*
@@ -55,27 +84,13 @@
 		SEMICOLON => semicolonToken;
 		INTEGER => integerToken;
 		FLOAT => floatToken;
-		QUOTED_STRING => quotedStringToken;
+		QS_quote ( QS_escape | QS_else )* QS_quote => quotedStringToken;
 		KEYWORD => keywordToken;
+		space;
 	*|;
 }%%
 
-#include <cstdio>
-#include <cstdlib>
-#include <string>
-
-#include "udmfParser.h"
-
 %% write data;
-
-extern "C" {
-
-extern void UDMF_ParseTrace(FILE *TraceFILE, char *zTracePrompt);
-extern void *UDMF_ParseAlloc(void *(*mallocProc)(size_t));
-extern void UDMF_Parse(void *yyp, int yymajor, void* yyminor);
-extern void UDMF_ParseFree(void *p, void (*freeProc)(void*));
-
-}
 
 namespace udmf {
 

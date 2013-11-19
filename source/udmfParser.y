@@ -22,10 +22,10 @@ assignment_expr ::= IDENTIFIER(A) EQUALS value SEMICOLON. {
 }
 
 value ::= INTEGER(A). {
-	printf("%d\n", A);
+	printf("%s\n", A);
 }
 value ::= FLOAT(A). {
-	printf("%f\n", A);
+	printf("%s\n", A);
 }
 value ::= QUOTED_STRING(A). {
 	printf("%s\n", A);
