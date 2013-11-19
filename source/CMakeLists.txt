@@ -14,9 +14,11 @@ set(GL_HEADERS opengl/gl_core_3_1.hpp)
 set(GL_SOURCES opengl/gl_core_3_1.cpp)
 
 # Generate lexer using Ragel
+set(RAGEL_FLAGS "-L")
+set(RAGEL_EXTENSION "cpp")
 find_package(Ragel REQUIRED)
 ragel_parser(udmfLexer.rl)
-list(APPEND ALTDEATH_SOURCES ${CMAKE_BINARY_DIR}/source/udmfLexer.c)
+list(APPEND ALTDEATH_SOURCES ${CMAKE_BINARY_DIR}/source/udmfLexer.cpp)
 
 # Generate parser using Lemon
 add_custom_command(

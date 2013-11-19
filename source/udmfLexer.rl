@@ -12,7 +12,7 @@
 	KEYWORD = [^{}();"'\n\t ]+;
 
 	action identifierToken {
-		UDMF_Parse(parser, UDMF_IDENTIFIER, "Identifier");
+		UDMF_Parse(parser, UDMF_IDENTIFIER, 0);
 	}
 
 	action leftParenToken {
@@ -60,26 +60,32 @@
 	*|;
 }%%
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
 
 #include "udmfParser.h"
 
 %% write data;
 
+extern "C" {
+
 extern void UDMF_ParseTrace(FILE *TraceFILE, char *zTracePrompt);
-extern void *UDMF_ParseAlloc(void* (*mallocProc)(size_t));
-extern void UDMF_Parse(void* yyp, int yymajor, void* yyminor);
-extern void UDMF_ParseFree(void* p, void (*freeProc)(void*));
+extern void *UDMF_ParseAlloc(void *(*mallocProc)(size_t));
+extern void UDMF_Parse(void *yyp, int yymajor, void* yyminor);
+extern void UDMF_ParseFree(void *p, void (*freeProc)(void*));
 
-void UDMF_Scan(const char* p) {
+}
+
+namespace udmf {
+
+void parse(const std::string& input) {
 	int cs, act;
-	char* ts, te;
+	const char *p, *pe, *eof, *ts, *te;
 
-	size_t len = strlen(p);
-	const char* pe = p + len;
-	const char* eof = p + len;
+	size_t len = input.length();
+	p = input.c_str();
+	pe = eof = p + len + 1;
 
 	UDMF_ParseTrace(stderr, "UDMF_Parse:");
 	void* parser = UDMF_ParseAlloc(malloc);
@@ -89,4 +95,6 @@ void UDMF_Scan(const char* p) {
 
 	UDMF_Parse(parser, 0, 0);
 	UDMF_ParseFree(parser, free);
+}
+
 }
