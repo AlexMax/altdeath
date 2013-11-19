@@ -33,6 +33,7 @@ struct Map {
 	std::vector<std::shared_ptr<MapSector> > sectors;
 	std::vector<std::shared_ptr<MapSide> > sides;
 	std::vector<std::shared_ptr<MapLine> > lines;
+	void load(const char* input);
 };
 
 }

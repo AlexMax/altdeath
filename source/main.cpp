@@ -14,6 +14,9 @@ int main(int argc, char** argv) {
 	// We can't simply omit argc and argv, otherwise SDL_main gets confused.
 	(void)argc; (void)argv;
 
+	sim::Map map;
+	map.load("namespace = \"Altdeath\";\nlinedef { foo = \"bar\"; baz = 9; }");
+
 	try {
 		// Initialize a screen for us to target.
 		std::unique_ptr<render::Screen> screen(new render::Screen);
