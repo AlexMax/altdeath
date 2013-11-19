@@ -2,25 +2,20 @@
 #include <cstdlib>
 #include <string>
 
-#include "udmfParser.h"
-
-extern "C" {
+#include "udmfParser.hpp"
 
 extern void UDMF_ParseTrace(FILE *TraceFILE, char *zTracePrompt);
 extern void *UDMF_ParseAlloc(void *(*mallocProc)(size_t));
 extern void UDMF_Parse(void *yyp, int yymajor, void* yyminor);
 extern void UDMF_ParseFree(void *p, void (*freeProc)(void*));
 
-}
-
 static void parseString(void* parser, int type, const char* ts, const char* te) {
 	size_t length = te - ts;
 	char* token = static_cast<char*>(malloc(length + 1));
 	memcpy(token, ts, length);
 	token[length] = 0;
-	printf("%s\n", token);
 	UDMF_Parse(parser, type, token);
-	free(token);
+	// Tokens are freed by the parser.
 }
 
 %%{

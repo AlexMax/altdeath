@@ -17,18 +17,20 @@ set(GL_SOURCES opengl/gl_core_3_1.cpp)
 set(RAGEL_FLAGS "-L")
 set(RAGEL_EXTENSION "cpp")
 find_package(Ragel REQUIRED)
-ragel_parser(udmfLexer.rl)
+ragel_parser(udmfLexer.rlpp)
 list(APPEND ALTDEATH_SOURCES ${CMAKE_BINARY_DIR}/source/udmfLexer.cpp)
 
 # Generate parser using Lemon
 add_custom_command(
-  OUTPUT ${CMAKE_BINARY_DIR}/source/udmfParser.c ${CMAKE_BINARY_DIR}/source/udmfParser.h
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/source/udmfParser.y ${CMAKE_BINARY_DIR}/source/udmfParser.y
-  COMMAND lemon ${CMAKE_BINARY_DIR}/source/udmfParser.y T=${CMAKE_SOURCE_DIR}/tools/lemon/lempar.c
-  DEPENDS lemon udmfParser.y
+  OUTPUT ${CMAKE_BINARY_DIR}/source/udmfParser.cpp ${CMAKE_BINARY_DIR}/source/udmfParser.hpp
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/source/udmfParser.ypp ${CMAKE_BINARY_DIR}/source/udmfParser.ypp
+  COMMAND lemon -l ${CMAKE_BINARY_DIR}/source/udmfParser.ypp T=${CMAKE_SOURCE_DIR}/tools/lemon/lempar.c
+  COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/source/udmfParser.c ${CMAKE_BINARY_DIR}/source/udmfParser.cpp
+  COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/source/udmfParser.h ${CMAKE_BINARY_DIR}/source/udmfParser.hpp
+  DEPENDS lemon udmfParser.ypp
 )
-list(APPEND ALTDEATH_HEADERS ${CMAKE_BINARY_DIR}/source/udmfParser.h)
-list(APPEND ALTDEATH_SOURCES ${CMAKE_BINARY_DIR}/source/udmfParser.c)
+list(APPEND ALTDEATH_HEADERS ${CMAKE_BINARY_DIR}/source/udmfParser.hpp)
+list(APPEND ALTDEATH_SOURCES ${CMAKE_BINARY_DIR}/source/udmfParser.cpp)
 
 # Executable Target
 add_executable(altdeath ${ALTDEATH_SOURCES} ${ALTDEATH_HEADERS} ${GL_SOURCES} ${GL_HEADERS})
