@@ -24,6 +24,7 @@ list(APPEND ALTDEATH_SOURCES ${CMAKE_BINARY_DIR}/source/udmfLexer.cpp)
 add_custom_command(
   OUTPUT ${CMAKE_BINARY_DIR}/source/udmfParser.cpp ${CMAKE_BINARY_DIR}/source/udmfParser.hpp
   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/source/udmfParser.ypp ${CMAKE_BINARY_DIR}/source/udmfParser.ypp
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/source/udmf.hpp ${CMAKE_BINARY_DIR}/source/udmf.hpp
   COMMAND lemon -l ${CMAKE_BINARY_DIR}/source/udmfParser.ypp T=${CMAKE_SOURCE_DIR}/tools/lemon/lempar.c
   COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/source/udmfParser.c ${CMAKE_BINARY_DIR}/source/udmfParser.cpp
   COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/source/udmfParser.h ${CMAKE_BINARY_DIR}/source/udmfParser.hpp

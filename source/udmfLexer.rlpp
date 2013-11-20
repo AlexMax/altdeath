@@ -6,7 +6,7 @@
 
 extern void UDMF_ParseTrace(FILE *TraceFILE, char *zTracePrompt);
 extern void *UDMF_ParseAlloc(void *(*mallocProc)(size_t));
-extern void UDMF_Parse(void *yyp, int yymajor, void* yyminor);
+extern void UDMF_Parse(void *yyp, int yymajor, char* yyminor);
 extern void UDMF_ParseFree(void *p, void (*freeProc)(void*));
 
 static void parseString(void* parser, int type, const char* ts, const char* te) {

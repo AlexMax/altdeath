@@ -1,8 +1,14 @@
 %include {
-	#include <assert.h>
+	#include <cassert>
+	#include <cstdlib>
+	#include <cstring>
+
+	#include "udmf.hpp"
 }
 %name UDMF_Parse
 %token_prefix UDMF_
+%token_type {char*}
+%token_destructor { free($$); }
 
 translation_unit ::= global_expr_list.
 global_expr_list ::= global_expr_list global_expr.
@@ -10,19 +16,44 @@ global_expr_list ::= .
 global_expr ::= block.
 global_expr ::= assignment_expr.
 
-block ::= IDENTIFIER(A) LEFT_PAREN expr_list RIGHT_PAREN. {
+block ::= identifier(A) LEFT_PAREN expr_list RIGHT_PAREN. {
 	printf("Block %s =>\n", A);
 }
 
 expr_list ::= expr_list assignment_expr.
 expr_list ::= .
 
-assignment_expr ::= IDENTIFIER(R1) EQUALS value(R2) SEMICOLON. { printf("%s = %s\n", R1, R2); }
+assignment_expr ::= identifier(R1) EQUALS value(R2) SEMICOLON. {
+	printf("%s = %s\n", R1->c_str(), R2->asString().c_str());
+}
 
-value(L) ::= INTEGER(R). { L = R; }
-value(L) ::= FLOAT(R). { L = R; }
-value(L) ::= QUOTED_STRING(R). { L = R; }
-value(L) ::= KEYWORD(R). { L = R; }
+%type identifier {std::string*}
+identifier(L) ::= IDENTIFIER(R). {
+	L = new std::string(R);
+	free(R);
+}
+
+%type value {udmf::Value*}
+value(L) ::= INTEGER(R). {
+	L = new udmf::Value(atoi(R));
+	free(R);
+}
+value(L) ::= FLOAT(R). {
+	L = new udmf::Value(atof(R));
+	free(R);
+}
+value(L) ::= QUOTED_STRING(R). {
+	L = new udmf::Value(R);
+	free(R);
+}
+value(L) ::= KEYWORD(R). {
+	if (strcmp(R, "true") == 0) {
+		L = new udmf::Value(true);
+	} else {
+		L = new udmf::Value(false);
+	}
+	free(R);
+}
 
 %parse_accept {
 	printf("Parsing complete!\n");
