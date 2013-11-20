@@ -20,16 +20,28 @@ block ::= identifier(A) LEFT_PAREN expr_list RIGHT_PAREN. {
 	printf("Block %s =>\n", A);
 }
 
-expr_list ::= expr_list assignment_expr.
-expr_list ::= .
-
-assignment_expr ::= identifier(R1) EQUALS value(R2) SEMICOLON. {
-	printf("%s = %s\n", R1->c_str(), R2->asString().c_str());
+%type expr_list {udmf::List*}
+%destructor expr_list { delete $$; $$ = nullptr; }
+expr_list(L) ::= . {
+	L = new udmf::List();
+}
+expr_list(L) ::= expr_list assignment_expr(R). {
+	L->insert(std::move(*R));
+	R = nullptr;
 }
 
-%type identifier {std::string*}
+%type assignment_expr {udmf::Assignment*}
+%destructor assignment_expr { delete $$; $$ = nullptr; }
+assignment_expr(L) ::= identifier(R1) EQUALS value(R2) SEMICOLON. {
+	L = new udmf::Assignment(std::move(*R1), std::move(*R2));
+	R1 = nullptr;
+	R2 = nullptr;
+}
+
+%type identifier {udmf::Identifier*}
+%destructor identifier { delete $$; $$ = nullptr; }
 identifier(L) ::= IDENTIFIER(R). {
-	L = new std::string(R);
+	L = new udmf::Identifier(R);
 	free(R);
 }
 

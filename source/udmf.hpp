@@ -2,6 +2,7 @@
 #define UDMF_HPP
 
 #include <string>
+#include <unordered_map>
 
 namespace udmf {
 
@@ -25,6 +26,10 @@ public:
 	double asDouble();
 	bool asBool();
 };
+
+typedef std::string Identifier;
+typedef std::pair<Identifier, Value> Assignment;
+typedef std::unordered_map<Identifier, Value> List;
 
 void parse(const std::string& input);
 
