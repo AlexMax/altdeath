@@ -24,8 +24,12 @@ void token(const char* token, const char* end) {
 		printf("End Assign %p (two tokens back = last token)\n", fpc);
 	}
 
+	action beginBlock {
+		printf("Begin Block %p (last token is block name)\n", fpc);
+	}
+
 	action endBlock {
-		printf("End Block %p (last token is block name)\n", fpc);
+		printf("End Block %p\n", fpc);
 	}
 
 	IDENTIFIER = ( [A-Za-z_]+[A-Za-z0-9_]* ) >mark %{ token("IDENTIFIER", fpc); };
@@ -34,10 +38,14 @@ void token(const char* token, const char* end) {
 	QUOTED_STRING = ( '"' ( /\\./ | [^"\\] )* '"' ) >mark %{ token("QUOTED_STRING", fpc); };
 	KEYWORD = ( 'true' | 'false' ) >mark %{ token("KEYWORD", fpc); };
 
+	C_COMMENT = '/*' any* :>> '*/';
+	CPP_COMMENT = '//' any* :>> '\n';
+	sc = ( space | C_COMMENT | CPP_COMMENT )*;
+
 	value = INTEGER | FLOAT | QUOTED_STRING | KEYWORD;
-	assignment = ( IDENTIFIER '=' value ';' ) %endAssign;
-	block = ( IDENTIFIER '{' assignment+ '}' ) %endBlock;
-	global = ( assignment | block )+;
+	assignment = ( sc IDENTIFIER sc '=' sc value sc ';' ) %endAssign;
+	block = ( sc IDENTIFIER ( sc '{' %beginBlock ) sc assignment+ sc '}' ) %endBlock;
+	global = sc ( assignment | block )+ sc;
 
 	main := global;
 }%%

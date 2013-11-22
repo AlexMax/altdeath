@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 	(void)argc; (void)argv;
 
 	sim::Map map;
-	map.load("namespace=\"Altdeath\";linedef{foo=\"bar\";baz=9;}end=true;");
+	map.load("namespace = \"Altdeath\";\nlinedef {\n\tfoo = \"bar\";\n\tbaz = 9;\n}\nend = true;");
 
 	try {
 		// Initialize a screen for us to target.
