@@ -35,3 +35,7 @@ target_link_libraries(altdeath ${OPENGL_gl_LIBRARY})
 # GLM Library
 find_package(GLM REQUIRED)
 include_directories(${GLM_INCLUDE_DIRS})
+
+# ENet
+include_directories(../lib/enet-1.3.10/include)
+target_link_libraries(altdeath enet)

@@ -8,5 +8,5 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 # Altdeath engine proper
 add_subdirectory(source)
 
-# Additional tools needed to compile the project
-add_subdirectory(tools)
+# Static Libraries
+add_subdirectory(lib)
